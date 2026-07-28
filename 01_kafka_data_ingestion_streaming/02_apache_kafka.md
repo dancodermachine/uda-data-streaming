@@ -1,0 +1,5 @@
+# Apache Kafka
+ 
+
+## Glossary
+
