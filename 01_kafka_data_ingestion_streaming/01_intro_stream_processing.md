@@ -85,6 +85,11 @@ SQL databases use append-only logs to track all creations, updates, and deletes 
 * Kafka provides ordering guarantees for data stored within it, meaning that the order in which data is received is the order in which data will be produced to consumers
 * Commonly used data store for popular streaming tools like Apache Spark, Flink, and Samza
 
+Industry:
+* [Uber Engineering Tech Stack](https://www.uber.com/us/en/blog/uber-tech-stack-part-two/)
+* [Uber Engineering / Data & ML Blog](https://www.uber.com/us/en/blog/engineering/data/)
+* [Uber Engineering Blog](https://www.uber.com/us/en/blog/engineering/)
+
 ### 6.1 Kafka Topic
 * Used to organize and segment datasets, similar to SQL database tables
 * Unlike SQL database tables, Kafka Topics are not queryable.
