@@ -105,6 +105,10 @@ In other words, it means that a Kafka producer has modified the shape of the dat
 In practice, evolving a schema simply means updating the Avro definition and resubmitting the schema to schema registry with some compatibility information. 
 
 ## 5. Schema Compability
+* Schema Evolution is caused by a modification to an existing data schema
+    - Adding or removing a field
+    - Making a field optional
+    - Changing a field type
 * Schema Registry can track schema compatibility between schemas
     - Compatibility is used to determine whether or not a particular schema version is usable by a data consumer
     - Consumers may opt to use this compatibility information to preemptively refuse to process data that is incompatible with its current configuration
