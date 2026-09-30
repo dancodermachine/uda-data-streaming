@@ -3,19 +3,17 @@
 ### 1.1 Understanding Stream Processing
 Stream Processing is the act of performing continual calculations on a potentially endless and constantly evolving source of data.
 
-Stream Processing applications perform calculations on Data Streams. Data Streams consist of a potentially endless stream of immutable data.
-
-Immutable data does not change -- once the data has been placed in the data stream it can never be updated. Another data entry can be placed in the stream that supersedes the previous data entry if necessary.
+![Understanding Data Streams](imgs/01_intro/01_undestanding_data_streams.png)
 
 Data sent to data streams is typically small, less than 1MB in size.
 
-The data throughput to data streams is highly variable. Some streams will receive thousands or tens of thousands of records per second, and some will receive one or two records per hour.
+Immutable data does not change -- once the data has been placed in the data stream it can never be updated. Another data entry can be placed in the stream that supersedes the previous data entry if necessary.
 
-Stream Processing acts on potentially endless and constantly evolving immutable data contained in data streams.
-
-Once data have been placed in a data stream, they cannot be modified. We must place a new record in the stream to override the existing data.
+![Immutable Data Stream](imgs/01_intro/02_immutable_data_stream.png)
 
 Data in data streams can vary widely in size depending on the application and platform, and the data volume may vary from a few records an hour to thousands of requests per second.
+
+![Vary Data Stream](imgs/01_intro/03_vary_data_stream.png)
 
 ### 1.2 What is an Event?
 * **Event** – a fact regarding something that occurred within a system, typically immutable once created in event-driven architectures. Some systems may allow corrections or compensations via additional events. Data records in the context of data streaming are events.
@@ -25,10 +23,25 @@ In many SQL databases, it is uncommon to track the history of what values were u
 
 ### 1.3 Examples
 * **Log Analysis**: Companies often run microservices that constantly produce logs that are full of information (e.g., user behaviour patterns, failure prediction, debugging).
-* **Web Analytics**: Modern web applications measure almost every action a user takes on their site (e.g., button clicks, page load times, session duration). 
+
+    ![Log Analysis](imgs/01_intro/04_log_analysis.png)
+
+* **Web Analytics**: Modern web applications measure almost every action a user takes on their site (e.g., button clicks, page load times, session duration).
+
+    ![Web Analytics](imgs/01_intro/05_web_analytics.png)
+
 * **Real-Time Pricing**
 
-### 1.3 Streaming Data Store
+    ![Real-Time Pricing](imgs/01_intro/06_real-time_pricing.png)
+
+## 2. Components of a Stream Processing Solution
+Stream Processing applications consist of a **streaming data store** and the **streaming calculation(s)**. 
+
+### 2.1 Streaming Data Store
+Streaming data stores hold all of the immutable event data in a system. These data stores guarantee that data is stored in the order it was produced.
+
+![Streaming Data Store](imgs/01_intro/07_streaming_data_store.png)
+
 * May look like a message queue, as is the case with Apache Kafka
 * May look like a SQL store, as is the case with Apache Cassandra
 * Responsible for holding all of the immutable event data in the system
@@ -36,7 +49,11 @@ In many SQL databases, it is uncommon to track the history of what values were u
 * Provides guarantee that data is produced to consumers in the order it was received
 * Provides guarantee that the events it stores are immutable and unchangeable
 
-## 2. Stream Processing Application and Framework
+### 2.2 Stream Processing Application and Framework
+Stream processing applications are downstream of the data store and perform calculations on one or more data streams, such as aggregations, joins, and filtering. These calculations produce new data events.
+
+![Streaming Application](imgs/01_intro/08_streaming_application.png)
+
 * Stream Processing applications sit downstream of the data store
 * Stream Processing applications ingest real-time event data from one or more data streams
 * Stream Processing applications aggregate, join, and find differences in data from these streams
@@ -55,12 +72,14 @@ More scalable due to distributed nature of storage
 * Allows one set of data to satisfy many use-cases which may not have been predictable when the dataset was originally created
 * Built-in ability to replay events and observe exactly what occurred, and in what order, provides more opportunities to recover from error states or dig into how a particular result was arrived at
 
-## 4 Append-Only Logs
+## 4. Append-Only Logs
 * Append-only logs are text files in which incoming events are written to the end of the log as they are received.
 * This simple concept -- of only ever appending, or adding, data to the end of a log file -- is what allows stream processing applications to ensure that events are ordered correctly even at high throughput and scale.
 * We can take this idea a step farther, and say that in fact, streams are append-only logs.
 
-## 5 Log-structured streaming
+    ![Append-Only Logs](imgs/01_intro/09_append_only.png)
+
+## 5. Log-Structured Streaming
 * Log-structured streams build upon the concept of append-only logs. One of the hallmarks of log-structured storage systems is that at their core they utilize append-only logs.
 * Common characteristics of all log-structured storage systems are that they simply append data to log files on disk.
 * These log files may store data indefinitely, for a specific time period, or until a specific size is reached.
@@ -74,7 +93,7 @@ More scalable due to distributed nature of storage
 
 SQL databases use append-only logs to track all creations, updates, and deletes made to the database so that those changes can be synced to replicas
 
-## 6 Kafka
+## 6. Kafka
 * Kafka is one of the most popular streaming data platforms in the industry today.
 * Provides an easy-to-use message queue interface on top of its append-only log-structured storage medium
 * Kafka is a log of events
@@ -84,6 +103,7 @@ SQL databases use append-only logs to track all creations, updates, and deletes 
 * Kafka scales from 1 to thousands of nodes
 * Kafka provides ordering guarantees for data stored within it, meaning that the order in which data is received is the order in which data will be produced to consumers
 * Commonly used data store for popular streaming tools like Apache Spark, Flink, and Samza
+* Netflix sends over 500billion events and 1.3 petabytes per day into Kafka.
 
 Industry:
 * [Uber Engineering Tech Stack](https://www.uber.com/us/en/blog/uber-tech-stack-part-two/)
