@@ -3,7 +3,11 @@
 * Kafka servers are referred to as brokers.
 * All of the brokers that work together are referred to as a cluster.
 * Clusters may consist of just one broker, or thousands of brokers.
-Apache Zookeeper(opens in a new tab) was historically used by Kafka brokers to determine which broker is the leader of a given partition and topic, track cluster membership, and store configuration for topics and permissions (ACLs). As of Kafka 3.3, ZooKeeper has been deprecated and replaced by KRaft (Kafka Raft) mode, which allows Kafka to manage its own metadata without an external coordination service.
+    
+    ![Brokers](imgs/02_apache_kafka/01_brokers.png)
+
+Apache Zookeeper was historically used by Kafka brokers to determine which broker is the leader of a given partition and topic, track cluster membership, and store configuration for topics and permissions (ACLs). As of Kafka 3.3, ZooKeeper has been deprecated and replaced by KRaft (Kafka Raft) mode, which allows Kafka to manage its own metadata without an external coordination service.
+
 * ACLs are permissions associated with an object. In Kafka, this typically refers to a user's permissions with respect to production and consumption, and/or the topics themselves.
 * Kafka nodes may gracefully join and leave the cluster.
 * Kafka runs on the Java Virtual Machine (JVM).
@@ -14,12 +18,12 @@ The way that Kafka stores data is pretty simple. It has a data directory on a di
 * Each topic receives its own sub-directory with the associated name of the topic.
 * Kafka may store more than one log file for a given topic.
 
-![How Kafka Stores Data](imgs/02_apache_kafka/01_how_kafka_stores_data.png)
+![How Kafka Stores Data](imgs/02_apache_kafka/02_how_kafka_stores_data.png)
 
 ## 3. Message Ordering
 Message ordering is only guaranteed within a partition in Kafka. If your topic has more than one partition, Kafka provides no guarantees that the messages will be consumed in the order they were produced. For many applications, this is an acceptable tradeoff for increasing the parallelism and speed of consumption. Your producer applications may still add metadata to the event header or message body itself to indicate ordering. However, this logic would belong to your application, and not Kafka itself. For example, you may place an increasing ID sequence in every message (eg 1, 2, 3, and so on) or a granular timestamp to indicate the order of a message.
 
-![Data Partitions](imgs/02_apache_kafka//02_data_partitions.png)
+![Data Partitions](imgs/02_apache_kafka//03_data_partitions.png)
 
 ## 4. Preventing Data Loss
 Based on an understanding that machines can fail, one of the core features of Kafka is the concept of replication.
@@ -35,15 +39,16 @@ The exact number of replicas used can be configured globally as a Kafka server c
 2. Data replication has overhead
 3. Always enable replication in a production cluster to prevent data loss
 
-## 5. Configuring Kafka Topics
+## 5. Kafka Topics
+### 5.1 Configuring Kafka Topics
 * Kafka uses data replication to duplicate data across multiple machines to prevent data loss in case a broker fails.
 * Commonly the desired replication factor is set at the topic level and the value should always be specified when creating a topic.
 * If a leader broker fails or is removed from a cluster, a replica broker will become the new leader.
-* To become a new leader, the broker must be an In-Sync Replica (ISR)
+* To become a new leader, the broker must be an In-Sync Replica (ISR).
 * Configuration in Kafka includes configuring the desired number of ISRs.
 * If the number of ISRs is too large this can slow down processing.
 
-## 6. Partitioning Topics
+### 5.2 Partitioning Topics
 * The “right” number of partitions is highly dependent on the scenario.
 * The most important number to understand is desired throughput. How many MB/s do you need to achieve to hit your goal?
 * You can easily add partitions at a later date by modifying a topic.
@@ -70,63 +75,64 @@ $$
 $$
 **Result:** $\boxed{4\text{ partitions needed}}$
 
-![Partitioning](imgs/02_apache_kafka//03_partitioning.png)
+![Partitioning](imgs/02_apache_kafka//04_partitioning.png)
 
 [How to choose the number of partitions](https://www.confluent.io/blog/how-choose-number-topics-partitions-kafka-cluster/)
 
-## 7. Kafka Naming Conventions
+### 5.3 Kafka Naming Conventions
 * The only enforced rules for topic names are that they must be less than 256 characters, consist only of alphanumeric characters (a-z, A-Z, 0-9), “.”, “_”, or “-”.
 * There is no idiomatic or universally correct naming convention.
 * Naming conventions can help reduce confusion, save time, and even increase reusability.
+* Recommended approach `<domain>.<model>.<event type>`
 * Example of a naming convention:
     * Consider starting with a namespace, like `com.udacity`.
     * Consider segmenting on schema or model type, like `com.udacity.lesson`, where `lesson` is the model.
     * Consider segmenting on event type, like `com.udacity.lesson.quiz_complete`, where `quiz_complete` is the event.
 
-## 8. Topic Data Management
+### 5.4 Topic Data Management
 * Data retention determines how long Kafka stores data in a topic.
-* When data expires it is deleted from the topic.
-    * Retention policies may be time based. Once data reaches a certain age it is deleted.
-    ![Time Expiration](imgs/02_apache_kafka/04_time_expiration.png)
-    * Retention policies may be size based. Once a topic's log size reaches a configured limit, the oldest data is deleted.
-    ![Size Expiration](imgs/02_apache_kafka/05_size_expiration.png)
+* When data expires it is deleted from the topic (`cleanup.policy` set to `delete`).
+    * Retention policies may be time based (`retention.ms`). Once data reaches a certain age it is deleted.
+    ![Time Expiration](imgs/02_apache_kafka/05_time_expiration.png)
+    * Retention policies may be size based (`retention.bytes`). Once a topic's log size reaches a configured limit, the oldest data is deleted.
+    ![Size Expiration](imgs/02_apache_kafka/06_size_expiration.png)
     * Retention policies may be both time- and size-based. Once either condition is reached, the oldest data is deleted.
-    ![Time & Size Expiration](imgs/02_apache_kafka/06_time_size_expiration.png)
-    * Alternatively, topics can be compacted in which there is no size or time limit for data in the topic.
-    ![Log Compaction](imgs/02_apache_kafka/07_log_compaction.png)
+    ![Time & Size Expiration](imgs/02_apache_kafka/07_time_size_expiration.png)
+    * Alternatively, topics can be compacted in which there is no size or time limit for data in the topic (`cleanup.policy` set to `compact`). 
+    ![Log Compaction](imgs/02_apache_kafka/08_log_compaction.png)
 * Compacted topics use the message key to identify messages uniquely. If a duplicate key is found, the latest value for that key is kept, and the old message is deleted.
-* Kafka topics can use compression algorithms to store data. This can reduce network overhead and save space on brokers. Supported compression algorithms include: `lz4`, `zstd`, `snappy`, and `gzip`.
+* Kafka topics can use compression algorithms to store data (`compression.type`). This can reduce network overhead and save space on brokers. Supported compression algorithms include: `lz4`, `zstd`, `snappy`, and `gzip`.
 * Kafka topics should store data for one type of event, not multiple types of events. Keeping multiple event types in one topic will cause your topic to be hard to use for downstream consumers.
 
-## 9. Topic Creation
+### 5.5 Topic Creation
 There are a number of ways to configure topics in Kafka and while topics may be created automatically, manual creation is a best practice. Helpful alternatives for topic creating include:
 * Writing code in producer applications to see if a topic already exists, if it doesn't then the producer can configure and create the topic.
 * Using Bash scripts or an infrastructure provisioning tool to create topics.
 
-## 10. Kafka Producer
-### 10.1 Synchronous Production
+## 6. Kafka Producer
+### 6.1 Synchronous Production
 The synchronous producer is the simplest type of Kafka producer, it:
 * sends data to Kafka.
 * blocks program execution until the message receipt has been confirmed by the broker.
 * is useful when you want to ensure data is sent before moving an application forward.
 * should be used for specific use cases and not as a default producer type.
-![Sync Producer](imgs/02_apache_kafka/08_sync_producer.png)
-### 10.2 Asynchronous Production
+![Sync Producer](imgs/02_apache_kafka/09_sync_producer.png)
+### 6.2 Asynchronous Production
 Asynchronous production of Kafka is the most common method of producing data to topics. A few key points to remember about asynchronous producers:
 * they send the data and immediately continue.
 * they are useful when maximizing throughput to Kafka with the least overhead and impact on the integrated application.
 * they should be the default choice unless the specific use case requires synchronicity.
 
 Kafka clients offer callbacks for when messages are delivered or an error occurs so that applications can take rectifying action. Conversely, producers can decide to fire and forget and never check for delivery confirmation or error messages.
-![Async Producer](imgs/02_apache_kafka/09_async_producer.png)
+![Async Producer](imgs/02_apache_kafka/10_async_producer.png)
 
-### 10.3 Message Serialization
+### 6.3 Message Serialization
 * Data sent to Kafka should be serialized into a format.
 * Kafka client libraries can assist in serialization.
 * Formats inlcude binary, string, csv, JSON, Avro.
 * Never change serialization type without a new topic!
 
-### 10.4 Producer Configuration
+### 6.4 Producer Configuration
 * It is a good idea to always set the `client.id` for improved logging, debugging, and resource limiting.
 * The `retries` setting determines how many times the producer will attempt to send a message before marking it as failed.
 * If ordering guarantees are important to your application and you've also enabled retries, make sure that you set `enable.idempotence` to `true`.
@@ -147,19 +153,19 @@ Message Compression Types:
 | **zstd** | High compression ratio | Not as fast as lz4 or snappy |
 | **gzip** | Ubiquitous, widely supported | CPU-intensive; significantly slower than lz4 or snappy |
 
-### 10.5 Batching Configuration
+### 6.5 Batching Configuration
 When Kafka client libraries send data to Kafka, they do not send every message individually. Instead, the client libraries collect groups of messages together and then send them to the Kafka broker.
 * Batches – the collection of groups of messages that are sent to a Kafka broker, used to improve application performance
 
 The count, frequency, and quantity of data sent in these batches are customizable.
 
-## 11. Kafka Consumer
+## 7. Kafka Consumer
 `client.id` is an optional setting which is useful in debugging and resource limiting.
 * Poll for data to read data from Kafka
     - `poll`
     - `consume`
 
-### 11.1 Consumer Offsets
+### 7.1 Consumer Offsets
 Kafka keeps track of what data a consumer has seen with offsets
 * Kafka stores offsets in a private internal topic.
 * Most client libraries automatically send offsets to Kafka for you on a periodic basis.
@@ -169,8 +175,9 @@ Kafka keeps track of what data a consumer has seen with offsets
     - If you want the consumer to start from the first known message, `[set auto.offset.reset to earliest]`.
     - This will only work the first time you start your consumer. On subsequent restarts it will pick up wherever it left off.
     - If you always want your consumer to start from the earliest known message, you must manually assign your consumer to the start of the topic on boot.
-![Consumer Offset](imgs/02_apache_kafka/10_consumer_offset.png)
-### 11.2 Consumer Groups
+![Consumer Offset](imgs/02_apache_kafka/11_consumer_offset.png)
+
+### 7.2 Consumer Groups
 * All Kafka Consumers belong to a Consumer group
     - The `group.id` parameter is required and identifies the globally unique consumer group.
     - Consumer groups consist of one or more consumers.
@@ -181,8 +188,10 @@ Kafka keeps track of what data a consumer has seen with offsets
     - The consumer group leader reassigns partitions to the current consumer group members.
     - During a rebalance, messages may not be processed or consumed.
 * Consumer groups increase fault tolerance and resiliency by automatically redistributing partition assignments if one or more members of the consumer group fail
-![Consumer Group](imgs/02_apache_kafka/11_consumer_group.png)
-### 11.3 Consumer Subscriptions
+
+![Consumer Group](imgs/02_apache_kafka/12_consumer_group.png)
+
+### 7.3 Consumer Subscriptions
 * You subscribe to a topic by specifying its name.
     - If you wanted to subscribe to `com.udacity.lesson.views`, you would simply specify the full name as `com.udacity.lesson.views`.
     - Make sure to set `allow.auto.create.topics` to false so that the topic isn't created by the consumer if it does not yet exist.
@@ -192,16 +201,17 @@ Kafka keeps track of what data a consumer has seen with offsets
     - The `^` prefix in the topic name string is all that is needed — no additional parameter is required.
     - See the `confluent_kafka_python` `subscribe()` documentation for more information.
 
-![Consumer Subscriptions](imgs/02_apache_kafka/12_consumer_subscriptions.png)
+![Consumer Subscriptions](imgs/02_apache_kafka/13_consumer_subscriptions.png)
 
 **Topic Rebalance**: An operation where consumers in a consumer group are assigned a partition.
-### 11.4 Consumer Deserializers
+
+### 7.4 Consumer Deserializers
 Remember to deserialize the data you are receiving from Kafka in an appropriate format:
 * If the producer used JSON, you will need to deserialize the data using a JSON library.
 * If the producer used bytes or string data, you may not have to do anything.
 
-### 11.5 Retrieving Data from Kafka
-* Most Kafka Consumers will have a \u201cpoll\u201d loop which loops infinitely and ingests data from Kafka.
+### 7.5 Retrieving Data from Kafka
+* Most Kafka Consumers will have a "poll" loop which loops infinitely and ingests data from Kafka.
 * Here is a sample poll loop:
 ```python
 while True:
@@ -230,8 +240,9 @@ while True:
 ```
 * Make sure to call `close()` on your consumer before exiting and to consume any remaining messages.
     - Failure to call `close` means the Kafka Broker has to recognize that the consumer has left the consumer group, which takes time and failed messages. Try to avoid this if you can.
-## 12. Performance
-### 12.1 Consumer Performance
+
+## 8. Performance
+### 8.1 Consumer Performance
 The most important metric to understand for your Kafka Consumer is **consumer lag**.
 $$
 \text{Lag} = \text{Latest Topic Offset} - \text{Consumer Topic Offset}
@@ -248,7 +259,7 @@ Another important metric to measure is the **number of messages per second passi
 
 Kafka emits metrics for throughput via the Java Metrics Exporter, or JMX, so that you can hook this metric directly into your monitoring dashboards and alerting systems.
 
-### 12.2 Producer Performance
+### 8.2 Producer Performance
 When a producer sends messages to Kafka, there is always some inherent latency in that process. Ideally, that latency number is small and consistent.
 $$
 \text{Latency} = \text{Time Broker Received} - \text{Time Produced}
@@ -264,7 +275,7 @@ If Kafka producer experiences high latency investigate:
 * Is the `acks` setting appropriate?
 * Does the topic require too many replicas and ISRs?
 
-### 12.3 Broker Performance
+### 8.3 Broker Performance
 The Kafka broker is the conduit through which data in a system flows.
 * First, disk usage should be monitored as Kafka retains data, sometimes indefinitely.
 * Network usage is a critical metric to measure.
@@ -277,15 +288,23 @@ Consequences of a saturated network on a broker:
 * Stopped Production
 * Broker Elections (sign of an unstable cluster)
 
+### 8.4 Performance Considerations
+Monitoring Kafka Consumers, Producers, and Brokers for performance is an important part of using Kafka. There are many metrics by which to measure your Kafka cluster. Focus on these key metrics to get started:
+* Consumer Lag: The difference between the latest offset in the topic and the most recently committed consumer offset
+* Producer Response Rate: The rate at which the broker is responding to the producer indicating message status
+* Producer Request Latency: The length of time a producer has to wait for a response from the broker after sending a message
+* Broker Disk Space
+* Broker Elections
+
 Further read:
 * [DataDog blog post on monitoring Kafka](https://www.datadoghq.com/blog/monitoring-kafka-performance-metrics/).
 * [Confluent article on monitoring Kafka](https://docs.confluent.io/platform/current/kafka/monitoring.html).
 * [New Relic article on monitoring Kafka](https://newrelic.com/blog/observability?has_gdpr=true).
 
-## 13. Record Removal & Data Privacy
+## 9. Record Removal & Data Privacy
 This is a serious issue in a world where privacy regulations are increasingly giving consumers the right to be forgotten. Regulations like the EU’s GDPR and the California Consumer Privacy Act, or CCPA, grant citizens of these regions the right to request that their data be removed from storage.
 
-### 13.1 Message Compaction
+### 9.1 Message Compaction
 Kafka supports message expiration:
 * Kafka can expire messages based on time, topic size, or both.
 
@@ -296,14 +315,18 @@ However, some use cases disallow the use of message expiration to manage user da
 
 One of the major problems with this approach, however, is that user data may be spread through many topics, and not always keyed on the user ID. So, unfortunately, this strategy is typically not enough.
 
-### 13.2 Per-User Key Encryption
+![Log Compaction](imgs/02_apache_kafka/14_log_compaction.png)
+
+### 9.2 Per-User Key Encryption
 **Encrypted User Keys** – create a topic that maps a user id to an encryption key.
 * Used to encrypt any data related to a user before putting it into any other Kafka topic.
 * Vastly reduces the management overhead of deleting user data.
 
 To delete the user, simply compact and delete their encryption key from the encrypted user key topic. Once the key is gone, it is effectively impossible for any application in the system to decrypt the user’s data ever again.
 
-## 14. Summary
+![Per User Key Encryption](imgs/02_apache_kafka/15_per_user_key_encryption.png)
+
+## 10. Summary
 * A Kafka Broker is an individual Kafka server.
 * A Kafka Cluster is a group of Kafka Brokers.
 * Kafka historically used ZooKeeper to elect topic leaders and store its own configuration, but modern Kafka versions use KRaft mode to manage this internally.
@@ -312,7 +335,7 @@ To delete the user, simply compact and delete their encryption key from the encr
 * How Kafka provides resiliency and helps prevent data loss with data replication.
 * Kafka is secured via mutual TLS (mTLS) or Simple Authentication and Security Layer (SASL). For hobbyist usage, Kafka is typically run unencrypted. However, if you are using Kafka at your job, or to transport sensitive information, you should either invest the time to secure Kafka or work with your company's security team to help you accomplish this.
 
-## 15. Glossary
+## 11. Glossary
 * **Broker** (Kafka) - A single member server of the Kafka cluster.
 * **Cluster** (Kafka) - A group of one or more Kafka Brokers working together to satisfy Kafka production and consumption.
 * **Node** - A single computing instance. May be physical, as in a server in a datacenter, or virtual, as an instance might be in AWS, GCP, or Azure.
