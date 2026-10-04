@@ -45,6 +45,8 @@ Kafka Connect can be configured to use a **FileStream Source Connector** to moni
 
 Apply the Kafka Connect FileStream Source connector to push logs into Kafka.
 
+One of the most common uses of Kafka in many organizations is the routing of log data from many disparate microservices.
+
 ### 1.5 Kafka Connect JDBC Source
 * JDBC = Java Database Connectivity. The JDBC API is used to abstract the interface to SQL Databases for Java applications. In the case of Kafka Connect, JDBC is used to act as a generic interface to common databases such as MySQL, Postgres, etc.
 * JDBC Sources are a common way to move data into Kafka from existing databases. Once the data is available in Kafka, it can be used in stream processing operations to enrich data or provide insights that may otherwise be missing.
